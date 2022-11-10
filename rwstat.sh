@@ -1,9 +1,9 @@
 #!/bin/bash
 
-PID=$(ps -a -o pid | grep -v PID); #Vai buscar os valores dos PIDs dos processos em execução
+PID=$(ps -o pid | grep -v PID); #Vai buscar os valores dos PIDs dos processos em execução
 arrPID=(); #array vazio
 
-COMM=$(ps -a -o comm | grep -v COMMAND); #Vai buscar o COMM dos processos em execução
+COMM=$(ps -o comm | grep -v COMMAND); #Vai buscar o COMM dos processos em execução
 arrCOMM=(); #array vazio
 
 USER=$(ps -o user | grep -v USER); #Vai buscar os users dos processos em execução
