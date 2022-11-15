@@ -47,7 +47,7 @@ printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "COMM" "USER" "PID" 
 for (( i=0; i<${#arrPID[@]}; i++ ))
    do
      #só dá print se o ficheiro existir
-      if [ -f /proc/${arrPID[$i]}/io ]; then
+      if [ -r /proc/${arrPID[$i]}/io  ]; then
           #Vai para cada PID buscar os valores do rchar e do wchar
          arrREAD1[$i]=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          arrWRITE1[$i]=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
@@ -61,8 +61,8 @@ sleep $1
 
 for (( i=0; i<${#arrPID[@]}; i++ ))
    do
-
-      if [ -f /proc/${arrPID[$i]}/io ]; then
+      #Verifica se tem permissões de leitura, se não tiver ignora
+      if [ -r /proc/${arrPID[$i]}/io ]; then
          READB2=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
          LSTART=${arrLSTART[$i]};
@@ -71,7 +71,9 @@ for (( i=0; i<${#arrPID[@]}; i++ ))
          WRITEB=$(echo "($WRITEB2 - ${arrWRITE1[$i]})" | bc);
          RATER=$(echo "scale=2; $READB/$1" | bc);
          RATEW=$(echo "scale=2; $WRITEB/$1" | bc);
-         
-         printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
+
+         if [[ $READB -ne 0 && $WRITEB -ne 0 ]]; then
+            printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
+         fi
       fi
 done
