@@ -3,15 +3,15 @@
 #A tabela em príncipio ja está correta
 #Falta só fazer as condiçoes de entrada que estão no guião
 
-PID=$(ps -o pid | grep -v PID); #Vai buscar os valores dos PIDs dos processos em execução
+PID=$(ps -e -o pid | grep -v PID); #Vai buscar os valores dos PIDs dos processos em execução
 arrPID=(); #array vazio
 
-COMM=$(ps -o comm | grep -v COMMAND); #Vai buscar o COMM dos processos em execução
+COMM=$(ps -e -o comm | grep -v COMMAND); #Vai buscar o COMM dos processos em execução
 arrCOMM=(); #array vazio
 
-USER=$(ps -o user | grep -v USER); #Vai buscar os users dos processos em execução
+USER=$(ps -e -o user | grep -v USER); #Vai buscar os users dos processos em execução
 
-LSTART=$(ps -o lstart | grep -v STARTED); #Vai buscar a data de inicio dos processos em execução
+LSTART=$(ps -e -o lstart | grep -v STARTED); #Vai buscar a data de inicio dos processos em execução
 arrUSER=(); #array vazio
 arrREAD1=(); #array vazio
 arrWRITE1=(); #array vazio
@@ -61,7 +61,7 @@ sleep $1
 
 for (( i=0; i<${#arrPID[@]}; i++ ))
    do
-     #só dá print se o diretório existir existir
+
       if [ -f /proc/${arrPID[$i]}/io ]; then
          READB2=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
