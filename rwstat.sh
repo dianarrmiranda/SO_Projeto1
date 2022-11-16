@@ -51,8 +51,6 @@ for (( i=0; i<${#arrPID[@]}; i++ ))
           #Vai para cada PID buscar os valores do rchar e do wchar
          arrREAD1[$i]=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          arrWRITE1[$i]=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
-
-
       fi
 done
 
@@ -66,7 +64,7 @@ for (( i=0; i<${#arrPID[@]}; i++ ))
          READB2=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
          LSTART=${arrLSTART[$i]};
-         DATE=$(date -d "$LSTART" +"%b %d %H:%M");
+         DATE=$(date -d "$LSTART" +"%b %d %H:%M" | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1'); #O awk é para colocar a primeira letra do Mẽs maiúscula!
          READB=$(echo "($READB2 - ${arrREAD1[$i]})" | bc);
          WRITEB=$(echo "($WRITEB2 - ${arrWRITE1[$i]})" | bc);
          RATER=$(echo "scale=2; $READB/$1" | bc);
