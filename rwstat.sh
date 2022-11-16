@@ -39,7 +39,7 @@ while read line
 do
    [[ "$line" != '' ]] && arrLSTART+=("$line")
 done <<< "$LSTART"
-
+nprocessos="${#arrPID[@]}"; # número de processos existentes. É a lenght do array do PID
 
 #Print do cabeçalho da tabela
 printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "COMM" "USER" "PID" "READB" "WRITEB" "RATER" "RATEW" "DATE";
@@ -54,24 +54,41 @@ for (( i=0; i<${#arrPID[@]}; i++ ))
       fi
 done
 
-sleep $1
+sleep ${@: -1} # argumento do tempo. É sempre o ultimo a ser passado independentemente do nº de argumentos
 
+# iniciei para ser uma variavel local se quisermos depois passar isto para dentro de uma função
+while getopts "rwp:" opt; do
+   case $opt in
+   r) echo "Reverse Order";;
+   w) echo "Sort on Write Values";;
+   p) nprocessos="${OPTARG}";; # set nprocessos to value passed as argument in OPTARG
+   ?) help;; 
+   esac
+done
 
-for (( i=0; i<${#arrPID[@]}; i++ ))
+procTerminal=0; # número de processos que vão ser impressos no terminal
+echo "nprocessos $nprocessos";
+for (( i=0; i <= ${#arrPID[@]}; i++ ))
    do
+   #echo "bacalhoa $j";
+   #echo ${#arrPID[@]};
       #Verifica se tem permissões de leitura, se não tiver ignora
       if [ -r /proc/${arrPID[$i]}/io ]; then
          READB2=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
          LSTART=${arrLSTART[$i]};
+         #echo "já lasca $nprocessos";
          DATE=$(date -d "$LSTART" +"%b %d %H:%M" | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1'); #O awk é para colocar a primeira letra do Mẽs maiúscula!
          READB=$(echo "($READB2 - ${arrREAD1[$i]})" | bc);
          WRITEB=$(echo "($WRITEB2 - ${arrWRITE1[$i]})" | bc);
-         RATER=$(echo "scale=2; $READB/$1" | bc);
-         RATEW=$(echo "scale=2; $WRITEB/$1" | bc);
-
+         RATER=$(echo "scale=2; $READB/${@: -1}" | bc);
+         RATEW=$(echo "scale=2; $WRITEB/${@: -1}" | bc);
          if [[ $READB -ne 0 && $WRITEB -ne 0 ]]; then
             printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
-         fi
+            procTerminal=$((procTerminal+1));
+         fi  
+      if [ $procTerminal -eq $nprocessos ]; then 
+         break;
+      fi
       fi
 done
