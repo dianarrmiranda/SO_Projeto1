@@ -67,7 +67,6 @@ while getopts "rwp:" opt; do
 done
 
 procTerminal=0; # número de processos que vão ser impressos no terminal
-echo "nprocessos $nprocessos";
 for (( i=0; i <= ${#arrPID[@]}; i++ ))
    do
    #echo "bacalhoa $j";
