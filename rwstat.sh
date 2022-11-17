@@ -1,5 +1,7 @@
 #!/bin/bash
 
+declare -A final_info=()
+
 #A tabela em príncipio ja está correta
 #Falta só fazer as condiçoes de entrada que estão no guião
 
@@ -83,11 +85,16 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          RATER=$(echo "scale=2; $READB/${@: -1}" | bc);
          RATEW=$(echo "scale=2; $WRITEB/${@: -1}" | bc);
 
-         printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
+         final_info[${arrPID[$i]}]=$(printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE");
          procTerminal=$((procTerminal+1));
          
-      if [ $procTerminal -eq $nprocessos ]; then 
-         break;
-      fi
       fi
 done
+
+
+final_infoSorted[]=$(printf "%s\n" "${final_info[@]}" | sort -k 6 -n -r);
+
+
+#printf "%s\n" "${final_info[@]}" | sort -k 6 -n -r # ordena por RATER em forma reversa funciona
+
+printf "%s\n" "${final_infoSorted[@]}" # Não funciona
