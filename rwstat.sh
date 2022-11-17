@@ -41,7 +41,9 @@ while read line
 do
    [[ "$line" != '' ]] && arrLSTART+=("$line")
 done <<< "$LSTART"
-nprocessos="${#arrPID[@]}"; # número de processos existentes. É a lenght do array do PID
+nprocessos="${#arrPID[@]}"; # número de processos existentes. É a length do array do PID
+
+w=0 # incializa a flag do w para não dar erro se não for passado nenhum w como argumento
 
 #Print do cabeçalho da tabela
 printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "COMM" "USER" "PID" "READB" "WRITEB" "RATER" "RATEW" "DATE";
@@ -61,14 +63,13 @@ sleep ${@: -1} # argumento do tempo. É sempre o ultimo a ser passado independen
 # iniciei para ser uma variavel local se quisermos depois passar isto para dentro de uma função
 while getopts "rwp:" opt; do
    case $opt in
-   r) echo "Reverse Order";;
-   w) echo "Sort on Write Values";;
+   r) r=1;;
+   w) w=1;;
    p) nprocessos="${OPTARG}";; # set nprocessos to value passed as argument in OPTARG
    ?) help;; 
    esac
 done
 
-procTerminal=0; # número de processos que vão ser impressos no terminal
 for (( i=0; i <= ${#arrPID[@]}; i++ ))
    do
    #echo "bacalhoa $j";
@@ -84,17 +85,24 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          WRITEB=$(echo "($WRITEB2 - ${arrWRITE1[$i]})" | bc);
          RATER=$(echo "scale=2; $READB/${@: -1}" | bc);
          RATEW=$(echo "scale=2; $WRITEB/${@: -1}" | bc);
-
-         final_info[${arrPID[$i]}]=$(printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE");
-         procTerminal=$((procTerminal+1));
          
+         final_info[${arrPID[$i]}]=$(printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE");
       fi
 done
 
-
-final_infoSorted[]=$(printf "%s\n" "${final_info[@]}" | sort -k 6 -n -r);
-
-
-#printf "%s\n" "${final_info[@]}" | sort -k 6 -n -r # ordena por RATER em forma reversa funciona
-
-printf "%s\n" "${final_infoSorted[@]}" # Não funciona
+#final_infoSorted=$(echo $final_info[${arrPID[$@]}] | sort -k 6 -n -r);
+#echo ${#final_infoSorted[@]}
+if [ $w -eq 1 ]; then
+   if [ $r -eq 1 ]; then
+      printf "%s\n" "${final_info[@]}" | sort -k 7 -n # ordena por RATEW em ordem crescente funciona
+   else
+      printf "%s\n" "${final_info[@]}" | sort -k 7 -n -r # ordena por RATEW em forma reversa funciona
+   fi
+else
+   COMO='printf "%s\n" "${final_info[@]}" | sort -k 6 -n -r' # ordena por RATER em forma reversa funciona, Como dar manter o que damos print numa varivavel?
+   echo $COMO
+   for (( i=0; i <= $nprocessos; i++ ))
+   do
+      printf "%s\n" "${COMO[i]}"
+   done
+fi
