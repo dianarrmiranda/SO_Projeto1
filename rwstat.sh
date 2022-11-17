@@ -83,10 +83,10 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          WRITEB=$(echo "($WRITEB2 - ${arrWRITE1[$i]})" | bc);
          RATER=$(echo "scale=2; $READB/${@: -1}" | bc);
          RATEW=$(echo "scale=2; $WRITEB/${@: -1}" | bc);
-         if [[ $READB -ne 0 && $WRITEB -ne 0 ]]; then
-            printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
-            procTerminal=$((procTerminal+1));
-         fi  
+
+         printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "${arrCOMM[$i]}" "${arrUSER[$i]}" "${arrPID[$i]}" "$READB" "$WRITEB" "$RATER" "$RATEW" "$DATE";
+         procTerminal=$((procTerminal+1));
+         
       if [ $procTerminal -eq $nprocessos ]; then 
          break;
       fi
