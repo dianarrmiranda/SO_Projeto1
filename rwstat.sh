@@ -178,5 +178,5 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
       fi
 done
 
-printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" |grep $userName | grep -T $procName | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
+printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat=$userName '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
 
