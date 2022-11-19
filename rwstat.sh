@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #Declarar as variáveis
 declare -A final_info=()
 arrPID=(); #array vazio
@@ -36,7 +35,7 @@ do
 done <<< "$LSTART"
 
 #Inicio das variaveis
-nprocessos="${#arrPID[@]}"; # número de processos existentes. É a length do array do 
+nprocessos="${#arrPID[@]}"; # número de processos existentes (é a length do array)
 procName=(.*); #nome do processo
 userName=(.*); #nome do utilizador
 minPid=0; #PID minimo
@@ -44,16 +43,30 @@ minPidFinal=(.*); #PID minimo final
 maxPid=0; #PID maximo
 maxPidFinal=(.*); #PID máximo final
 sortmethod=(sort -k 6 -n -r) # inicaliza o sort para ordenar por ordem decresecente de RATER. Depois, no swtich case, esta variável é atualizada
+minDate=0; #Data mínima
+minDateFinal=(.*); #Data mínima final
+maxDate=0; #Data máxima
+maxDateFinal=(.*); #Data máxima final
 
 # iniciei para ser uma variavel local se quisermos depois passar isto para dentro de uma função
 while getopts "c:u:m:M:rwp:" opt; do
    case $opt in
-   c) procName=$OPTARG;;
-   u) userName=$OPTARG;;
+   c) if [[ $OPTARG =~ ^[0-9]*$ ]]; then # Ainda não está completo. Neste momento, está se o OPTARG for igual a um número, então dá erro Mas, falta validar para se estive vazio
+         echo "A opção -c requere um argumento ou um argumento diferente de um número"
+      fi
+      procName=$OPTARG;;
+   u) if [[ $OPTARG =~ ^[0-9]*$ ]]; then # Ainda não está completo. Neste momento, está se o OPTARG for igual a um número, então dá erro Mas, falta validar para se estive vazio
+         echo "A opção -u requere um argumento ou um que não seja um número"
+      fi
+      userName=$OPTARG;;
    m) minPid=$OPTARG
       minPidFinal=(^[0-9]*$);;
    M) maxPid=$OPTARG
       maxPidFinal=(^[0-9]*$);;
+   s) minDate=$OPTARG
+      #acrescentar REGEX para validar a data
+   e) maxDate=$OPTARG
+      #acrescentar REGEX para validar a data
    r) sortmethod=(sort -k 7 -n);;
    w) sortmethod=(sort -k 7 -n -r);;
    p) nprocessos=$OPTARG;; # set nprocessos to value passed as argument in OPTARG
@@ -86,15 +99,12 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          if [[ -v $opt==c && ! $COMM =~ $procName ]]; then # se o nome do processo não corresponder à condição regex passada como argumento, ignora
             continue
          fi
-
          if [[ -v $opt==u && ! $USER =~ $userName ]]; then # se o nome do utilizador não corresponder à condição regex passada como argumento, ignora
             continue
          fi
-
          if [[ ${arrPID[$i]} -ge $minPid ]]; then 
             minPidFinal=$(echo $minPidFinal'|'${arrPID[$i]}) #Concatena uma string com os PID para depois fazer o grep
          fi  
-
          if [[ ${arrPID[$i]} -lt $maxPid ]]; then 
             maxPidFinal=$(echo $maxPidFinal'|'${arrPID[$i]})
          fi
@@ -113,6 +123,5 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
       fi
 done
 
-printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | grep $procName | grep $userName | grep -E $minPidFinal | grep -E $maxPidFinal | head -n $nprocessos 
-
+printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | grep $procName | grep $userName | grep -E $minPidFinal | grep -E $maxPidFinal | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
 
