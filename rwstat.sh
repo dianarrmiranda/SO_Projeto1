@@ -39,7 +39,7 @@ done <<< "$LSTART"
 nprocessos="${#arrPID[@]}"; # número de processos existentes. É a length do array do 
 procName=(.*); #nome do processo
 userName=(.*); #nome do utilizador
-minPid=100000000000000000000000000000000000000000000000000; #PID minimo
+minPid=0; #PID minimo
 minPidFinal=(.*); #PID minimo final
 maxPid=0; #PID maximo
 maxPidFinal=(.*); #PID máximo final
