@@ -10,7 +10,6 @@ arrWRITE1=() #array vazio
 #Opções disponíveis
 help() {
     echo "-----------------------------------------------------------------------------------"
-    echo
     echo "OPÇÕES DISPONÍVEIS!"
     echo
     echo "Opções de visualização:"
@@ -18,9 +17,9 @@ help() {
     echo "    -s    : Definir data mínima de criação dos processos a visualizar"
     echo "    -e    : Definir data máxima de criação dos processos a visualizar"
     echo "    -u    : Visualizar os processos de um determinado utilizador"
-    echo "    -m    : Definir o PID minimo dos processos a visualizar"
+    echo "    -m    : Definir o PID mínimo dos processos a visualizar"
     echo "    -M    : Definir o PID máximo dos processos a visualizar"
-    echo "    -p    : Defenir o número de interfaces a visualizar"
+    echo "    -p    : Definir o número de processos a visualizar"
     echo
     echo "Opções de ordenação:"
     echo "    -r    : Ordem reversa (crescente)"
@@ -79,34 +78,72 @@ maxDateFinal=(.*); #Data máxima final
 while getopts "c:u:m:M:s:e:rwp:" opt; do
    case $opt in
    c) procName=$OPTARG
-      if [[ $procName =~ ^([0-9]+)$ ]]; then # Ainda não está completo. Neste momento, está se o OPTARG for igual a um número, então dá erro Mas, falta validar para se estive vazio
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      elif [[ $procName =~ ^([0-9]+)$ ]]; then
          echo "ERRO: A opção -c requere um argumento ou um argumento diferente de um número"
          help
       fi
       ;;
-   u) if [[ $OPTARG =~ ^[0-9]*$ ]]; then # Ainda não está completo. Neste momento, está se o OPTARG for igual a um número, então dá erro Mas, falta validar para se estive vazio
+   u) if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      elif [[ $OPTARG =~ ^[0-9]*$ ]]; then 
          echo "A opção -u requere um argumento ou um que não seja um número"
       fi
       userName=$OPTARG;;
    m) minPid=$OPTARG
-      minPidFinal=(^[0-9]*$);;
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      fi
+      minPidFinal=(^[0-9]*$)
+      if ! [[ $minPid =~ ^([0-9]+)$ ]]; then # se o minPidFinal não for um número inteiro, então dá erro e vai para a ajuda
+         echo "ERRO: o número mínimo do ID do processo a visualizar tem de ser um inteiro positivo." 
+         help
+     fi;;
    M) maxPid=$OPTARG
-      maxPidFinal=(^[0-9]*$);;
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      fi
+      maxPidFinal=(^[0-9]*$)
+      if ! [[ $maxPid =~ ^([0-9]+)$ ]]; then # se o maxPidFinal não for um número inteiro, então dá erro e vai para a ajuda 
+         echo "ERRO: o número máximo do ID do processo a visualizar tem de ser um inteiro positivo." 
+         help
+     fi;;
    s) minDate=$OPTARG
-      minDateFinal=(^[A-Z]*$);;
-      #acrescentar REGEX para validar a data
+      minDateFinal=(^[A-Z]*$)
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      elif [[ "${#OPTARG}" -ne 12 ]]; then #para ser uma data válida, tem de ter 12 caracteres a contar com os espaços 
+         echo "ERRO: a data mínima tem de ter 12 carateres (os espaços também contam)"
+         help
+      fi;;
    e) maxDate=$OPTARG
-      maxDateFinal=(^[A-Z]*$);;
+      maxDateFinal=(^[A-Z]*$)
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      elif [[ "${#OPTARG}" -ne 12 ]]; then #para ser uma data válida, tem de ter 12 caracteres a contar com os espaços 
+         echo "ERRO: a data máxima tem de ter 12 carateres (os espaços também contam)"
+         help
+      fi;;
       #acrescentar REGEX para validar a data
    r) sortmethod=(sort -k $colOrdena -n);;
    w) colOrdena=7;
       sortmethod=(sort -k $colOrdena -n -r);;
    p) nprocessos=$OPTARG
-     if ! [[ $nprocessos =~ ^([0-9]+)$ ]]; then # se o nprocessos não for um número inteiro então dá erro e sai 
+      if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
+         echo "ERRO: está a passar como argumento outro comando!"
+         help
+      elif ! [[ $nprocessos =~ ^([0-9]+)$ ]]; then # se o nprocessos não for um número inteiro, então dá erro e vai para a ajuda
          echo "ERRO: o número de processos a visualizar tem de ser um inteiro positivo." 
          help
      fi
-      ;;# set nprocessos to value passed as argument in OPTARG
+      ;;
    ?) help;; 
    esac
 done
@@ -147,7 +184,6 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          if [[ ${arrPID[$i]} -le $maxPid ]]; then 
             maxPidFinal=$(echo $maxPidFinal'|'${arrPID[$i]})
          fi
-         
 
          READB2=$(cat /proc/${arrPID[$i]}/io | grep rchar | awk '{print $2}');
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
@@ -155,9 +191,9 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
 
          DATE=$(date -d "$LSTART" +"%b %d %H:%M" | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1'); #O awk é para colocar a primeira letra do Mẽs maiúscula!
          DATE_Segundos=$(date -d "$DATE" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}') # data do processo em segundos
+ 
+         inicio=$(date -d "$minDate" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}') # dá erro se não cumprir o formato da data
 
-         inicio=$(date -d "$minDate" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}')
-         
          if [[ $DATE_Segundos -ge $inicio ]]; then 
             minDateFinal=$(echo "$minDateFinal"'|'"$DATE") #Concatena uma string com os PID para depois fazer o grep
          fi  
@@ -180,3 +216,5 @@ done
 
 printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat=$userName '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
 
+# para o -c mostrar o processos a começar na letra passada, fazemos--> ^ means "the beginning of the annotation", e.g. "^ng" will match "ngabi" but not "bukung"?
+# Nota: Se não for passado nenhum valor para o -p, e a seguir for o tempo de espera, o programa combina os 2 argumentos e faz os 2.
