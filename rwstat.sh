@@ -104,8 +104,8 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
          help
       fi
       minPidFinal=(^[0-9]*$)
-      if ! [[ $minPid =~ ^([0-9]+)$ ]]; then # se o minPidFinal não for um número inteiro, então dá erro e vai para a ajuda
-         echo "ERRO: o número mínimo do ID do processo a visualizar tem de ser um inteiro positivo." 
+      if  [[ ! $minPid =~ ^([0-9]+)$ ]] || [[ $minPid -eq ${@: -1} ]]; then # se o minPidFinal não for um número inteiro, ou se for o valor passado como sleep, então dá erro e vai para a ajuda
+         echo "ERRO: o número mínimo do ID do processo a visualizar tem de ser um inteiro positivo, e este não pode ser o valor passado como tempo de sleep." 
          help
      fi;;
    M) maxPid=$OPTARG
@@ -114,8 +114,8 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
          help
       fi
       maxPidFinal=(^[0-9]*$)
-      if ! [[ $maxPid =~ ^([0-9]+)$ ]]; then # se o maxPidFinal não for um número inteiro, então dá erro e vai para a ajuda 
-         echo "ERRO: o número máximo do ID do processo a visualizar tem de ser um inteiro positivo." 
+      if [[ ! $maxPid =~ ^([0-9]+)$ ]] || [[ $maxPid -eq ${@: -1} ]]; then # se o maxPidFinal não for um número inteiro, então dá erro e vai para a ajuda 
+         echo "ERRO: o número máximo do ID do processo a visualizar tem de ser um inteiro positivo, e este não pode ser o valor passado como tempo de sleep." 
          help
      fi;;
    s) minDate=$OPTARG
@@ -133,7 +133,7 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
          echo "ERRO: está a passar como argumento outro comando!"
          help
       elif [[ "${#OPTARG}" -ne 12 ]]; then #para ser uma data válida, tem de ter 12 caracteres a contar com os espaços 
-         echo "ERRO: a data máxima tem de ter 12 carateres (os espaços também contam)"
+         echo "ERRO: o número máximo do ID do processo a visualizar tem de ser um inteiro positivo, e este não pode ser o valor passado como tempo de sleep."
          help
       fi;;
       #acrescentar REGEX para validar a data
@@ -144,7 +144,7 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
       if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
          echo "ERRO: está a passar como argumento outro comando!"
          help
-      elif ! [[ $nprocessos =~ ^([0-9]+)$ ]]; then # se o nprocessos não for um número inteiro, então dá erro e vai para a ajuda
+      elif [[ ! $maxPid =~ ^([0-9]+)$ ]] || [[ $maxPid -eq ${@: -1} ]]; then # se o nprocessos não for um número inteiro, ou for o valor passado no sleep então dá erro e vai para a ajuda
          echo "ERRO: o número de processos a visualizar tem de ser um inteiro positivo." 
          help
      fi
@@ -222,4 +222,3 @@ done
 printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat=$userName '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
 
 # para o -c mostrar o processos a começar na letra passada, fazemos--> ^ means "the beginning of the annotation", e.g. "^ng" will match "ngabi" but not "bukung"?
-# Nota: Se não for passado nenhum valor para o -p, e a seguir for o tempo de espera, o programa combina os 2 argumentos e faz os 2.
