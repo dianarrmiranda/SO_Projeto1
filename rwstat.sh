@@ -9,25 +9,25 @@ arrWRITE1=() #array vazio
 
 #Opções disponíveis
 help() {
-    echo "-----------------------------------------------------------------------------------"
-    echo "OPÇÕES DISPONÍVEIS!"
-    echo
-    echo "Opções de visualização:"
-    echo "    -c    : Selecionar os processos a visualizar através de uma expressão regular"
-    echo "    -s    : Definir data mínima de criação dos processos a visualizar"
-    echo "    -e    : Definir data máxima de criação dos processos a visualizar"
-    echo "    -u    : Visualizar os processos de um determinado utilizador"
-    echo "    -m    : Definir o PID mínimo dos processos a visualizar"
-    echo "    -M    : Definir o PID máximo dos processos a visualizar"
-    echo "    -p    : Definir o número de processos a visualizar"
-    echo
-    echo "Opções de ordenação:"
-    echo "    -r    : Ordem reversa (crescente)"
-    echo "    -w    : Ordenar pelo RATEW (descrescente)"
-    echo "     A ordenação default é pelo RATER de forma decrescente."
-    echo
-    echo "O último argumento tem de corresponder sempre ao número de segundos que pretende analisar."
-    echo "------------------------------------------------------------------------------------"
+    echo "------------------------------------------------------------------------------------------------"
+    echo "| OPÇÕES DISPONÍVEIS!                                                                           |"                                                                                               
+    echo "|                                                                                               |"
+    echo "| Opções de visualização:                                                                       |"
+    echo "|   -c    : Selecionar os processos a visualizar através de uma expressão regular               |"
+    echo "|   -s    : Definir data mínima de criação dos processos a visualizar                           |" 
+    echo "|   -e    : Definir data máxima de criação dos processos a visualizar                           |"
+    echo "|   -u    : Visualizar os processos de um determinado utilizador                                |"
+    echo "|   -m    : Definir o PID mínimo dos processos a visualizar                                     |" 
+    echo "|   -M    : Definir o PID máximo dos processos a visualizar                                     |"
+    echo "|   -p    : Definir o número de processos a visualizar                                          |"
+    echo "|                                                                                               |" 
+    echo "| Opções de ordenação:                                                                          |"
+    echo "|   -r    : Ordem reversa (crescente)                                                           |"
+    echo "|   -w    : Ordenar pelo RATEW (descrescente)                                                   |"
+    echo "|    A ordenação default é pelo RATER de forma decrescente.                                     |"
+    echo "|                                                                                               |"
+    echo "| O último argumento tem de corresponder sempre ao número de segundos que pretende analisar.    |"
+    echo "------------------------------------------------------------------------------------------------"
     exit 1
 }
 
@@ -73,6 +73,11 @@ minDate=0; #Data mínima
 maxDate=0; #Data máxima
 minDateFinal=(.*);
 maxDateFinal=(.*); #Data máxima final
+
+if ! [[ ${@: -1} =~ ^[0-9]+$ ]]; then #Verifica se o último argumento é um número
+   echo "ERRO: O último argumento tem de ser um número!"
+   help
+fi
 
 # iniciei para ser uma variavel local se quisermos depois passar isto para dentro de uma função
 while getopts "c:u:m:M:s:e:rwp:" opt; do
