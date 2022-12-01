@@ -1,6 +1,9 @@
 #!/bin/bash
 #Declarar as variáveis
 declare -A final_info=()
+
+export LANG=pt_BR.utf8;
+
 arrPID=(); #array vazio
 arrCOMM=(); #array vazio
 arrUSER=() #array vazio
@@ -219,6 +222,10 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
       fi
 done
 
-printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat=$userName '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
+printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat="^$userName$" '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
+
+#User march - 
+#the ^ stands for the start of the string: nothing can be before the pattern
+#the $ stands for the end of the string: nothing can be after
 
 # para o -c mostrar o processos a começar na letra passada, fazemos--> ^ means "the beginning of the annotation", e.g. "^ng" will match "ngabi" but not "bukung"?
