@@ -1,14 +1,5 @@
 #!/bin/bash
-#Declarar as variáveis
-declare -A final_info=()
-
 export LANG=pt_BR.utf8;
-
-arrPID=(); #array vazio
-arrCOMM=(); #array vazio
-arrUSER=() #array vazio
-arrREAD1=() #array vazio
-arrWRITE1=() #array vazio
 
 #Opções disponíveis
 help() {
@@ -34,6 +25,14 @@ help() {
     exit 1
 }
 
+#Declarar as variáveis
+declare -A final_info=()
+
+arrPID=(); #array vazio
+arrCOMM=(); #array vazio
+arrUSER=() #array vazio
+arrREAD1=() #array vazio
+arrWRITE1=() #array vazio
 
 #Buscar as informações necessárias
 PID=$(ps -e -o pid | grep -v PID); #Vai buscar os valores dos PIDs dos processos em execução
@@ -68,21 +67,20 @@ colOrdena=6; #coluna que vai ser ordenada
 procName=(.*); #nome do processo
 userName=(.*); #nome do utilizador
 minPid=0; #PID minimo
-minPidFinal=(.*); #PID minimo final
+minPidFinal=(.*); #todos os PIDs superiores ao minPid 
 maxPid=0; #PID maximo
-maxPidFinal=(.*); #PID máximo final
+maxPidFinal=(.*); #todos os PIDs inferiores ao maxPid
 sortmethod=(sort -k $colOrdena -n -r) # inicaliza o sort para ordenar por ordem decresecente de RATER. Depois, no swtich case, esta variável é atualizada
 minDate=0; #Data mínima
 maxDate=0; #Data máxima
-minDateFinal=(.*);
-maxDateFinal=(.*); #Data máxima final
+minDateFinal=(.*); #todas os datas superiores ao minDate 
+maxDateFinal=(.*); #todas os datas inferiores ao maxDate 
 
 if ! [[ ${@: -1} =~ ^[0-9]+$ ]]; then #Verifica se o último argumento é um número
    echo "ERRO: O último argumento tem de ser um número!"
    help
 fi
 
-# iniciei para ser uma variavel local se quisermos depois passar isto para dentro de uma função
 while getopts "c:u:m:M:s:e:rwp:" opt; do
    case $opt in
    c) procName=$OPTARG
@@ -100,7 +98,7 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
       elif [[ $OPTARG =~ ^[0-9]*$ ]]; then 
          echo "A opção -u requere um argumento ou um que não seja um número"
       fi
-      userName=$OPTARG;;
+      userName="^$OPTARG$";;
    m) minPid=$OPTARG
       if [[ ${OPTARG:0:1} == "-" ]]; then # todos os comandos têm de começar por -
          echo "ERRO: está a passar como argumento outro comando!"
@@ -156,8 +154,6 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
    esac
 done
 
-#Print do cabeçalho da tabela
-printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "COMM" "USER" "PID" "READB" "WRITEB" "RATER" "RATEW" "DATE";
 
 for (( i=0; i<${#arrPID[@]}; i++ ))
    do
@@ -197,10 +193,10 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          WRITEB2=$(cat /proc/${arrPID[$i]}/io | grep wchar | awk '{print $2}');
          LSTART=${arrLSTART[$i]};
 
-         DATE=$(date -d "$LSTART" +"%b %d %H:%M" | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1'); #O awk é para colocar a primeira letra do Mẽs maiúscula!
+         DATE=$(date -d "$LSTART" +"%b %d %H:%M" | awk '{$1=toupper(substr($1,0,1))substr($1,2)}1'); #O awk é para colocar a primeira letra do Mẽs maiúscula
          DATE_Segundos=$(date -d "$DATE" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}') # data do processo em segundos
  
-         inicio=$(date -d "$minDate" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}') # dá erro se não cumprir o formato da data
+         inicio=$(date -d "$minDate" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}') 
 
          if [[ $DATE_Segundos -ge $inicio ]]; then 
             minDateFinal=$(echo "$minDateFinal"'|'"$DATE") #Concatena uma string com os PID para depois fazer o grep
@@ -209,7 +205,7 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
          fim=$(date -d "$maxDate" +"%b %d %H:%M"+%s | awk -F '[+]' '{print $2}')
 
          if [[ $DATE_Segundos -le $fim ]]; then 
-            maxDateFinal=$(echo "$maxDateFinal"'|'"$DATE") #Concatena uma string com os PID para depois fazer o grep
+            maxDateFinal=$(echo "$maxDateFinal"'|'"$DATE") #Concatena uma string com as datas para depois fazer o grep
          fi  
 
          READB=$(echo "($READB2 - ${arrREAD1[$i]})" | bc);
@@ -222,10 +218,6 @@ for (( i=0; i <= ${#arrPID[@]}; i++ ))
       fi
 done
 
-printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat="^$userName$" '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos # -n a seguir ao head é para limitar o número de linhas
-
-#User march - 
-#the ^ stands for the start of the string: nothing can be before the pattern
-#the $ stands for the end of the string: nothing can be after
-
-# para o -c mostrar o processos a começar na letra passada, fazemos--> ^ means "the beginning of the annotation", e.g. "^ng" will match "ngabi" but not "bukung"?
+#Prints
+printf "%-20s %-12s %-12s %-12s %-12s %-12s %-12s %-12s \n" "COMM" "USER" "PID" "READB" "WRITEB" "RATER" "RATEW" "DATE";
+printf "%s\n" "${final_info[@]}" | "${sortmethod[@]}" | awk -v pat=$userName '$2 ~ pat' | awk -v pat=$procName '$1 ~ pat' | grep -E $minPidFinal | grep -E $maxPidFinal | grep -E "$minDateFinal" | grep -E "$maxDateFinal" | head -n $nprocessos
