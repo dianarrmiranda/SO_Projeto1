@@ -97,6 +97,7 @@ while getopts "c:u:m:M:s:e:rwp:" opt; do
          help
       elif [[ $OPTARG =~ ^[0-9]*$ ]]; then 
          echo "A opção -u requere um argumento ou um que não seja um número"
+         help
       fi
       userName="^$OPTARG$";;
    m) minPid=$OPTARG
